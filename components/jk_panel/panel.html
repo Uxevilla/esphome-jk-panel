@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel JK BMS</title>
+<style>
+:root{
+  --bg:#f4f5f7; --card:#fff; --ink:#1b1f24; --muted:#5d6672; --line:#e1e4e8; --grid:#e9ecef;
+  --a:#2563eb; --b:#d97706; --ok:#15803d; --warn:#b45309; --bad:#b91c1c; --chip:#eef1f4;
+  --shadow:0 1px 2px rgba(0,0,0,.06);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1317; --card:#171d23; --ink:#e8ecf0; --muted:#97a1ad; --line:#27303a; --grid:#222a33;
+    --a:#6ea8ff; --b:#f2a65a; --ok:#4ade80; --warn:#fbbf24; --bad:#f87171; --chip:#222b34;
+    --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1317; --card:#171d23; --ink:#e8ecf0; --muted:#97a1ad; --line:#27303a; --grid:#222a33;
+  --a:#6ea8ff; --b:#f2a65a; --ok:#4ade80; --warn:#fbbf24; --bad:#f87171; --chip:#222b34; --shadow:none;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--card);position:sticky;top:0;z-index:5}
+h1{font-size:18px;margin:0;font-weight:650}
+h2{font-size:15px;margin:0 0 10px;font-weight:650}
+main{max-width:1200px;margin:0 auto;padding:16px;display:grid;gap:16px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;background:var(--chip);font-size:13px;color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.ok .dot{background:var(--ok)} .bad .dot{background:var(--bad)}
+.grid2{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow)}
+.card h2 .tag{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:12px;margin:8px 0 14px}
+.kpi{min-width:0}
+.kpi .l{font-size:12px;color:var(--muted)}
+.kpi .v{font-size:22px;font-weight:650;font-variant-numeric:tabular-nums;white-space:nowrap}
+.kpi .v small{font-size:13px;font-weight:500;color:var(--muted);margin-left:2px}
+.badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.badge{padding:2px 9px;border-radius:6px;font-size:12px;font-weight:600;background:var(--chip);color:var(--muted)}
+.badge.on{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}
+.badge.err{background:color-mix(in srgb,var(--bad) 18%,transparent);color:var(--bad)}
+.bar{height:10px;border-radius:6px;background:var(--chip);overflow:hidden;margin:2px 0 12px}
+.bar>i{display:block;height:100%;background:var(--ok);transition:width .4s}
+.cells{display:grid;grid-template-columns:repeat(16,1fr);gap:3px;align-items:end;height:120px;margin-top:6px}
+.cell{display:flex;flex-direction:column;justify-content:flex-end;height:100%;min-width:0}
+.cell i{display:block;background:var(--a);border-radius:3px 3px 0 0;min-height:2px;transition:height .4s}
+.cell.min i{background:var(--bad)} .cell.max i{background:var(--ok)}
+.cellv{display:grid;grid-template-columns:repeat(16,1fr);gap:3px;font-size:10px;color:var(--muted);text-align:center;font-variant-numeric:tabular-nums}
+.cellv span{writing-mode:vertical-rl;transform:rotate(180deg);margin:4px auto 0;white-space:nowrap}
+.charts{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(min(100%,540px),1fr))}
+canvas{width:100%;height:210px;display:block}
+.legend{display:flex;gap:14px;font-size:13px;color:var(--muted);margin-bottom:6px;flex-wrap:wrap}
+.legend b{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
+button,select,input{font:inherit;color:var(--ink)}
+button{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--muted)} button:disabled{opacity:.45;cursor:not-allowed}
+button.primary{background:var(--a);border-color:var(--a);color:#fff}
+button.danger{background:var(--bad);border-color:var(--bad);color:#fff}
+.seg button{border-radius:0;margin-left:-1px} .seg button:first-child{border-radius:8px 0 0 8px;margin:0} .seg button:last-child{border-radius:0 8px 8px 0}
+.seg button.act{background:var(--a);border-color:var(--a);color:#fff;position:relative}
+.sw{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.sw:first-of-type{border-top:0}
+.sw .n{font-weight:600} .sw .d{font-size:12px;color:var(--muted)}
+.toggle{position:relative;width:46px;height:26px;border-radius:999px;background:var(--line);border:0;padding:0;flex:none}
+.toggle::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .15s}
+.toggle[aria-checked="true"]{background:var(--ok)} .toggle[aria-checked="true"]::after{left:23px}
+.num{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:7px 0;border-top:1px solid var(--line)}
+.num label{min-width:0} .num .n{font-size:14px} .num .d{font-size:12px;color:var(--muted)}
+.num input{width:100px;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);text-align:right;font-variant-numeric:tabular-nums}
+.num input.dirty{border-color:var(--warn)} .num input:disabled{opacity:.5}
+.group{margin-top:12px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.lock{padding:10px 12px;border-radius:10px;background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--ink);font-size:13px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:10px}
+.lock.open{background:color-mix(in srgb,var(--bad) 14%,transparent)}
+.note{font-size:13px;color:var(--muted)}
+.alert{padding:10px 12px;border-radius:10px;background:color-mix(in srgb,var(--bad) 14%,transparent);font-size:14px}
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);max-width:min(92vw,460px);padding:18px}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+dialog p{margin:6px 0}
+dialog .row{justify-content:flex-end;margin-top:14px}
+#toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw}
+#toast.show{opacity:1}
+.sr{position:absolute;left:-9999px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+td,th{padding:4px 6px;text-align:right;border-top:1px solid var(--line);font-variant-numeric:tabular-nums} th{color:var(--muted);font-weight:500} td:first-child,th:first-child{text-align:left}
+</style>
+</head>
+<body>
+<header>
+  <h1>Panel JK BMS</h1>
+  <div class="row">
+    <span class="pill" id="conn"><span class="dot"></span><span id="connTxt">Conectando…</span></span>
+    <span class="pill" id="upd">—</span>
+    <button id="themeBtn" aria-label="Cambiar tema">Tema</button>
+  </div>
+</header>
+<main>
+  <div id="alerts"></div>
+  <section class="grid2" id="cards"></section>
+
+  <section class="card">
+    <div class="row" style="justify-content:space-between;margin-bottom:10px">
+      <h2 style="margin:0">Histórico</h2>
+      <div class="seg row" id="range" style="gap:0">
+        <button data-m="5">5 min</button><button data-m="30" class="act">30 min</button><button data-m="120">2 h</button><button data-m="360">6 h</button>
+      </div>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="charts" id="charts"></div>
+    <p class="note">El histórico se guarda en este navegador (no en el ESP32). Para un histórico permanente usa Home Assistant.</p>
+  </section>
+
+  <section class="grid2" id="ctrls"></section>
+
+  <section class="card" id="ro">
+    <h2>Parámetros del BMS (solo lectura)</h2>
+    <p class="note">Estos valores no se pueden cambiar desde aquí, ni siquiera por la API del ESP32. Para modificarlos usa la app de JK (con el ESP32 apagado).</p>
+    <div id="roTab"></div>
+  </section>
+</main>
+
+<dialog id="dlg">
+  <h2 id="dlgT"></h2><div id="dlgB"></div>
+  <div class="row"><button id="dlgNo">Cancelar</button><button id="dlgYes" class="primary">Confirmar</button></div>
+</dialog>
+<div id="toast" role="status"></div>
+
+<script>
+"use strict";
+const BMS = [
+  {id:"S15P", model:"JK_PB2A16S15P", color:"var(--a)"},
+  {id:"S20P", model:"JK_PB2A16S20P", color:"var(--b)"},
+];
+const CELLS = 16;
+// ---- nombres reales de las entidades (compatibles con el antiguo "jk-bms-proxy") <-> nombres lógicos del panel ----
+const BAT={bateria1:"S15P",bateria2:"S20P"}, BATR={S15P:"bateria1",S20P:"bateria2"};
+const TAB=[ // [dominio, lógico, real]
+ ["sensor","Tension","voltaje total"],["sensor","Corriente","corriente"],["sensor","Potencia","potencia"],["sensor","SOC","estado de carga"],
+ ["sensor","Capacidad restante","capacidad restante"],["sensor","Delta celdas","delta voltaje celda"],["sensor","Temp 1","sensor de temperatura 1"],
+ ["sensor","Temp 2","sensor de temperatura 2"],["sensor","Temp MOSFET","temperatura del tubo de potencia"],["sensor","Ciclos","ciclos de carga"],
+ ["binary_sensor","Carga activa","cargando"],["binary_sensor","Descarga activa","descargando"],["binary_sensor","Equilibrando","balanceando"],
+ ["text_sensor","Errores","errores"],
+ ["switch","Carga","cargando"],["switch","Descarga","descargando"],["switch","Balanceador","balancer"],
+ ["number","Balanceo diferencia","voltaje de disparo de balanceo"],["number","Balanceo inicio","voltaje de inicio de balanceo"],
+ ["number","Balanceo corriente max","corriente máxima de balanceo"],["number","Corriente carga max","corriente máxima de carga"],
+ ["number","Corriente descarga max","corriente máxima de descarga"],["number","OVP celda","protección sobretensión celda"],
+ ["number","OVP recuperacion","recuperación sobretensión celda"],["number","UVP celda","protección subtensión celda"],
+ ["number","UVP recuperacion","recuperación subtensión celda"],["number","Temp carga max","temperatura máxima de carga"],
+ ["number","Temp carga min","temperatura mínima de carga"],["number","SOC 100","voltaje celda SoC 100%"],["number","SOC 0","voltaje celda SoC 0%"],
+ ["number","Apagado","voltaje apagado"],
+];
+const REV={}, FWD={};
+for(const [d,l,r] of TAB){ REV[d+"/"+r]=d+"/"+l; FWD[d+"/"+l]=r; }
+REV["number/capacidad total de batería"]="sensor/Capacidad total";       // se muestra como dato
+function toLogical(id){
+  const i=id.indexOf("/"), d=id.slice(0,i), rest=id.slice(i+1), sp=rest.indexOf(" "), b=BAT[rest.slice(0,sp)];
+  if(!b) return id; const suf=rest.slice(sp+1), e=REV[d+"/"+suf];
+  if(e){ const j=e.indexOf("/"); return e.slice(0,j)+"/"+b+" "+e.slice(j+1); }
+  const m=/^voltaje celda (\d+)$/.exec(suf); if(d==="sensor"&&m) return "sensor/"+b+" Celda "+m[1].padStart(2,"0");
+  return id;
+}
+function realName(d,key){ const b=BATR[key.slice(0,4)], suf=key.slice(5); return b+" "+(FWD[d+"/"+suf]||suf); }
+const SAMPLE_MS = 5000, KEEP_MS = 6*3600*1000;
+
+// ---------- estado ----------
+const S = Object.create(null);            // "domain/Nombre" -> {value,state,min,max,step,uom}
+let lastEvt = 0, es = null, editUntil = 0;
+const $ = (s, r=document) => r.querySelector(s);
+const el = (t, a={}, ...kids) => { const e = document.createElement(t);
+  for (const [k,v] of Object.entries(a)) { if (k==="class") e.className=v; else if (k==="html") e.innerHTML=v; else if (k.startsWith("on")) e[k]=v; else e.setAttribute(k,v); }
+  for (const c of kids.flat()) e.append(c); return e; };
+const val = (d, n) => { const x = S[d+"/"+n]; return x ? x.value : undefined; };
+const fmt = (v, d=2) => (typeof v==="number" && isFinite(v)) ? v.toFixed(d) : "—";
+const esc = s => String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toast.t); toast.t=setTimeout(()=>t.classList.remove("show"),3500); }
+
+// ---------- conexión SSE ----------
+function connect(){
+  if (es) es.close();
+  es = new EventSource("/events");
+  es.addEventListener("state", e => {
+    try { const d = JSON.parse(e.data); if (!d.id) return;
+      const lid = toLogical(d.id), o = S[lid] || (S[lid] = {});
+      o.value = d.id.startsWith("number/") ? parseFloat(d.value) : d.value; o.state = d.state;
+      if (d.min_value !== undefined) { o.min = +d.min_value; o.max = +d.max_value; o.step = +d.step; o.uom = d.uom||""; }
+      lastEvt = Date.now(); scheduleRender();
+    } catch(_) {}
+  });
+  es.onopen = () => setConn(true);
+  es.onerror = () => setConn(false);
+}
+function setConn(ok){ const c=$("#conn"); c.classList.toggle("ok",ok); c.classList.toggle("bad",!ok); $("#connTxt").textContent = ok?"Conectado":"Sin conexión (reintentando)"; }
+setInterval(()=>{ const s=(Date.now()-lastEvt)/1000; $("#upd").textContent = lastEvt? ("Último dato hace "+(s<2?"<2":Math.round(s))+" s") : "Sin datos"; if (lastEvt && s>30) setConn(false); }, 1000);
+
+// ---------- render ----------
+let rq = 0; function scheduleRender(){ if (!rq) rq = requestAnimationFrame(()=>{ rq=0; render(); }); }
+
+function buildCards(){
+  const host = $("#cards"); host.innerHTML="";
+  for (const b of BMS){
+    const c = el("div",{class:"card",id:"card-"+b.id});
+    c.innerHTML = `
+      <h2><span class="tag" style="background:${b.color}"></span>${b.id} <span class="note">${b.model}</span></h2>
+      <div class="badges" data-k="badges"></div>
+      <div class="kpis">
+        <div class="kpi"><div class="l">Tensión</div><div class="v" data-k="v"></div></div>
+        <div class="kpi"><div class="l">Corriente</div><div class="v" data-k="i"></div></div>
+        <div class="kpi"><div class="l">Potencia</div><div class="v" data-k="p"></div></div>
+        <div class="kpi"><div class="l">SOC</div><div class="v" data-k="soc"></div></div>
+      </div>
+      <div class="bar" title="Carga"><i data-k="socbar" style="width:0"></i></div>
+      <div class="kpis">
+        <div class="kpi"><div class="l">Capacidad</div><div class="v" data-k="cap"></div></div>
+        <div class="kpi"><div class="l">Delta celdas</div><div class="v" data-k="delta"></div></div>
+        <div class="kpi"><div class="l">Temperaturas</div><div class="v" data-k="temp" style="font-size:17px"></div></div>
+        <div class="kpi"><div class="l">Ciclos de carga</div><div class="v" data-k="cyc" style="font-size:17px"></div></div>
+      </div>
+      <div class="l note">Tensión por celda (V) — <span style="color:var(--bad)">mín</span> / <span style="color:var(--ok)">máx</span></div>
+      <div class="cells" data-k="cells"></div>
+      <div class="cellv" data-k="cellv"></div>`;
+    host.append(c);
+  }
+}
+
+function render(){
+  const alerts=[];
+  for (const b of BMS){
+    const id=b.id, c=$("#card-"+id); if(!c) continue; const q=k=>$('[data-k="'+k+'"]',c);
+    const V=val("sensor",id+" Tension"), I=val("sensor",id+" Corriente"), P=val("sensor",id+" Potencia"), SOC=val("sensor",id+" SOC");
+    q("v").innerHTML = fmt(V,2)+"<small>V</small>";
+    q("i").innerHTML = fmt(I,1)+"<small>A</small>";
+    q("p").innerHTML = fmt(P,0)+"<small>W</small>";
+    q("soc").innerHTML = fmt(SOC,0)+"<small>%</small>";
+    const bar=q("socbar"); bar.style.width=Math.max(0,Math.min(100,SOC||0))+"%"; bar.style.background = SOC<15?"var(--bad)":SOC<30?"var(--warn)":"var(--ok)";
+    q("cap").innerHTML = fmt(val("sensor",id+" Capacidad restante"),0)+"<small>/ "+fmt(val("sensor",id+" Capacidad total"),0)+" Ah</small>";
+    const D=val("sensor",id+" Delta celdas"); q("delta").innerHTML = (typeof D==="number"?Math.round(D*1000):"—")+"<small>mV</small>";
+    q("temp").textContent = [val("sensor",id+" Temp 1"),val("sensor",id+" Temp 2"),val("sensor",id+" Temp MOSFET")].map(t=>fmt(t,0)).join(" / ")+" °C";
+    q("cyc").textContent = fmt(val("sensor",id+" Ciclos"),0)+" ciclos";
+    const bd=q("badges"); bd.innerHTML="";
+    const chg=val("binary_sensor",id+" Carga activa"), dis=val("binary_sensor",id+" Descarga activa"), bal=val("binary_sensor",id+" Equilibrando");
+    bd.append(el("span",{class:"badge"+(chg?" on":"")},"Carga "+(chg?"ON":"OFF")), el("span",{class:"badge"+(dis?" on":"")},"Descarga "+(dis?"ON":"OFF")), el("span",{class:"badge"+(bal?" on":"")},"Equilibrando "+(bal?"sí":"no")));
+    const err=val("text_sensor",id+" Errores"); if (err) { bd.append(el("span",{class:"badge err"},err)); alerts.push(id+": "+err); }
+    // celdas
+    const vs=[]; for(let n=1;n<=CELLS;n++) vs.push(val("sensor",id+" Celda "+String(n).padStart(2,"0")));
+    const ok=vs.filter(x=>typeof x==="number"&&x>0);
+    if (ok.length){
+      const mn=Math.min(...ok), mx=Math.max(...ok), lo=Math.floor((mn-0.02)*100)/100, hi=Math.ceil((mx+0.02)*100)/100;
+      const cb=q("cells"), cv=q("cellv"); if(!cb.children.length){ for(let n=0;n<CELLS;n++){cb.append(el("div",{class:"cell"},el("i")));cv.append(el("span"));} }
+      vs.forEach((x,n)=>{ const cell=cb.children[n]; if(typeof x!=="number")return;
+        cell.firstChild.style.height=Math.max(2,(x-lo)/(hi-lo)*100)+"%"; cell.className="cell"+(x===mn?" min":"")+(x===mx&&mx!==mn?" max":"");
+        cell.title="Celda "+(n+1)+": "+x.toFixed(3)+" V"; cv.children[n].textContent=x.toFixed(3); });
+    }
+  }
+  $("#alerts").innerHTML = alerts.length ? '<div class="alert"><b>Alarmas activas:</b> '+alerts.map(esc).join(" · ")+(alerts.some(a=>/undervoltage/i.test(a))?'<br><span class="note">Subtensión: la descarga queda cortada hasta que las celdas superen la tensión de recuperación (UVP recuperación). Carga las baterías.</span>':'')+'</div>' : "";
+  renderCtrls(); renderRO(); drawAll();
+}
+
+// ---------- histórico ----------
+let hist = {}; BMS.forEach(b=>hist[b.id]=[]);
+try { const h=JSON.parse(localStorage.getItem("jkhist")||"null"); if(h&&h.v===1){ hist=h.d; BMS.forEach(b=>{hist[b.id]=hist[b.id]||[];}); } } catch(_){}
+function sample(){
+  const now=Date.now(); if(!lastEvt||now-lastEvt>20000) return;
+  for(const b of BMS){ const id=b.id; const v=val("sensor",id+" Tension"); if(typeof v!=="number") continue;
+    hist[id].push({t:now,v,i:val("sensor",id+" Corriente"),soc:val("sensor",id+" SOC"),d:(val("sensor",id+" Delta celdas")||0)*1000,
+      tm:Math.max(val("sensor",id+" Temp 1")??-99,val("sensor",id+" Temp 2")??-99,val("sensor",id+" Temp MOSFET")??-99)});
+    const cut=now-KEEP_MS; while(hist[id].length&&hist[id][0].t<cut) hist[id].shift(); }
+  drawAll();
+}
+setInterval(sample,SAMPLE_MS);
+let saveT=0; setInterval(()=>{ try{ localStorage.setItem("jkhist",JSON.stringify({v:1,d:hist})); }catch(_){} },60000);
+window.addEventListener("pagehide",()=>{ try{ localStorage.setItem("jkhist",JSON.stringify({v:1,d:hist})); }catch(_){} });
+
+let rangeMin=30;
+const CHARTS=[
+  {k:"v",t:"Tensión del pack (V)",u:"V",dec:2,span:0.6},
+  {k:"i",t:"Corriente (A) · + carga / − descarga",u:"A",dec:1,zero:true,span:4},
+  {k:"soc",t:"SOC (%)",u:"%",dec:0,min:0,max:100},
+  {k:"d",t:"Delta entre celdas (mV)",u:"mV",dec:0,min:0,span:20},
+  {k:"tm",t:"Temperatura máxima (°C)",u:"°C",dec:1,span:6},
+];
+function buildCharts(){
+  $("#legend").innerHTML = BMS.map(b=>`<span><b style="background:${b.color}"></b>${b.id}</span>`).join("");
+  const host=$("#charts"); host.innerHTML="";
+  for(const c of CHARTS){ const cv=el("canvas",{"data-c":c.k,role:"img","aria-label":c.t}); const box=el("div",{},el("h2",{style:"font-size:14px;margin-bottom:4px"},c.t),cv); host.append(box);
+    cv.addEventListener("mousemove",e=>{hover=[cv,e.offsetX];drawAll();}); cv.addEventListener("mouseleave",()=>{hover=null;drawAll();}); cv.addEventListener("touchmove",e=>{const r=cv.getBoundingClientRect();hover=[cv,e.touches[0].clientX-r.left];drawAll();},{passive:true}); }
+}
+let hover=null;
+function cssVar(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+function colorOf(b){ return b.color.startsWith("var(")?cssVar(b.color.slice(4,-1)):b.color; }
+function drawAll(){ document.querySelectorAll("canvas[data-c]").forEach(cv=>draw(cv,CHARTS.find(c=>c.k===cv.dataset.c))); }
+function draw(cv,cfg){
+  const dpr=window.devicePixelRatio||1, W=cv.clientWidth, H=cv.clientHeight; if(!W) return;
+  if(cv.width!==Math.round(W*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);}
+  const g=cv.getContext("2d"); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
+  const ink=cssVar("--muted"), grid=cssVar("--grid"), now=Date.now(), t0=now-rangeMin*60000;
+  const L=46,R=26,T=8,B=22, w=W-L-R, h=H-T-B;
+  const ser=BMS.map(b=>({b,pts:hist[b.id].filter(p=>p.t>=t0&&typeof p[cfg.k]==="number"&&p[cfg.k]>-90)}));
+  let lo=Infinity,hi=-Infinity; ser.forEach(s=>s.pts.forEach(p=>{lo=Math.min(lo,p[cfg.k]);hi=Math.max(hi,p[cfg.k]);}));
+  g.font="11px system-ui,sans-serif"; g.fillStyle=ink; g.textAlign="center";
+  if(!isFinite(lo)){ g.fillText("Esperando datos…",W/2,H/2); return; }
+  if(cfg.zero){lo=Math.min(lo,0);hi=Math.max(hi,0);} if(cfg.min!==undefined)lo=Math.min(lo,cfg.min); if(cfg.max!==undefined)hi=Math.max(hi,cfg.max);
+  if(cfg.span&&hi-lo<cfg.span){const m=(hi+lo)/2;lo=cfg.min!==undefined?Math.min(lo,cfg.min):m-cfg.span/2;hi=Math.max(hi,lo+cfg.span);if(cfg.min===undefined)hi=m+cfg.span/2;} if(hi-lo<1e-9){hi+=1;lo-=1;} const pad=(hi-lo)*.08; if(cfg.min===undefined)lo-=pad; if(cfg.max===undefined)hi+=pad;
+  const X=t=>L+(t-t0)/(now-t0)*w, Y=v=>T+(1-(v-lo)/(hi-lo))*h;
+  g.strokeStyle=grid; g.lineWidth=1; g.textAlign="right";
+  for(let n=0;n<=4;n++){ const v=lo+(hi-lo)*n/4, y=Y(v); g.beginPath(); g.moveTo(L,y); g.lineTo(W-R,y); g.stroke(); g.fillText(v.toFixed(cfg.dec),L-6,y+4); }
+  for(let n=0;n<=4;n++){ const t=t0+(now-t0)*n/4; g.textAlign=n===0?"left":n===4?"right":"center"; g.fillText(new Date(t).toTimeString().slice(0,5),n===0?L:n===4?W-R+10:X(t),H-6); }
+  if(cfg.zero){ g.strokeStyle=ink; g.globalAlpha=.5; g.beginPath(); g.moveTo(L,Y(0)); g.lineTo(W-R,Y(0)); g.stroke(); g.globalAlpha=1; }
+  for(const s of ser){ if(!s.pts.length) continue; g.strokeStyle=colorOf(s.b); g.lineWidth=2; g.lineJoin="round"; g.beginPath();
+    s.pts.forEach((p,n)=>{ const x=X(p.t),y=Y(p[cfg.k]); if(n&&p.t-s.pts[n-1].t>60000) g.moveTo(x,y); else n?g.lineTo(x,y):g.moveTo(x,y); }); g.stroke();
+    const l=s.pts[s.pts.length-1]; g.fillStyle=colorOf(s.b); g.beginPath(); g.arc(X(l.t),Y(l[cfg.k]),3,0,7); g.fill(); }
+  if(hover&&hover[0]===cv){ const x=Math.max(L,Math.min(W-R,hover[1])), t=t0+(x-L)/w*(now-t0);
+    g.strokeStyle=ink; g.globalAlpha=.6; g.beginPath(); g.moveTo(x,T); g.lineTo(x,T+h); g.stroke(); g.globalAlpha=1;
+    const lines=[new Date(t).toTimeString().slice(0,8)];
+    for(const s of ser){ let best=null; for(const p of s.pts) if(!best||Math.abs(p.t-t)<Math.abs(best.t-t)) best=p; if(best&&Math.abs(best.t-t)<120000) lines.push(s.b.id+": "+best[cfg.k].toFixed(cfg.dec)+" "+cfg.u); }
+    const bw=Math.max(...lines.map(s=>g.measureText(s).width))+14, bh=lines.length*15+8, bx=x+bw+8>W?x-bw-8:x+8;
+    g.fillStyle=cssVar("--card"); g.strokeStyle=cssVar("--line"); g.fillRect(bx,T+4,bw,bh); g.strokeRect(bx,T+4,bw,bh);
+    g.fillStyle=cssVar("--ink"); g.textAlign="left"; lines.forEach((s,n)=>g.fillText(s,bx+7,T+18+n*15)); }
+}
+$("#range").addEventListener("click",e=>{ const m=e.target.dataset.m; if(!m)return; rangeMin=+m; [...$("#range").children].forEach(x=>x.classList.toggle("act",x===e.target)); drawAll(); });
+window.addEventListener("resize",drawAll);
+
+// ---------- controles ----------
+const SW=[["Carga","Permite cargar la batería (MOSFET de carga)."],["Descarga","Permite descargar. Al apagarlo se corta la salida."],["Balanceador","Equilibrado activo de celdas."]];
+const NUMS=[
+  ["Balanceo",[["Balanceo diferencia","Diferencia entre celdas para empezar a equilibrar"],["Balanceo inicio","Tensión de celda a partir de la que equilibra"],["Balanceo corriente max","Corriente máxima del equilibrador"]]],
+  ["Corrientes",[["Corriente carga max","Límite de corriente de carga"],["Corriente descarga max","Límite de corriente de descarga"]]],
+  ["Temperatura de carga",[["Temp carga max","Sobretemperatura: corta la carga por encima"],["Temp carga min","Subtemperatura: corta la carga por debajo"]]],
+  ["Calibración de SOC y apagado",[["SOC 100","Tensión de celda a la que el BMS pone el SOC al 100 %"],["SOC 0","Tensión de celda a la que el BMS pone el SOC al 0 %"],["Apagado","Tensión de celda a la que el BMS se apaga"]]],
+  ["Protecciones de tensión (celda)",[["OVP celda","Sobretensión: corta la carga"],["OVP recuperacion","Tensión de rearme tras sobretensión"],["UVP celda","Subtensión: corta la descarga"],["UVP recuperacion","Tensión de rearme tras subtensión"]]],
+];
+const DANGER=new Set(["SOC 100","SOC 0","Apagado","Temp carga max","Temp carga min","OVP celda","OVP recuperacion","UVP celda","UVP recuperacion","Corriente carga max","Corriente descarga max"]);
+const editing=()=>Date.now()<editUntil;
+let ctrlSig="";
+function buildCtrls(){
+  const host=$("#ctrls"); host.innerHTML="";
+  for(const b of BMS){
+    const c=el("div",{class:"card"}); c.append(el("h2",{html:`<span class="tag" style="background:${b.color}"></span>Ajustes ${b.id}`}));
+    const lock=el("div",{class:"lock",id:"lock-"+b.id}); c.append(lock);
+    c.append(el("div",{class:"group"},"Interruptores"));
+    for(const [n,d] of SW){ const row=el("div",{class:"sw"}, el("div",{}, el("div",{class:"n"},n), el("div",{class:"d"},d)),
+      el("button",{class:"toggle",role:"switch","aria-checked":"false","aria-label":b.id+" "+n,"data-sw":b.id+" "+n,onclick:()=>askSwitch(b.id,n)})); c.append(row); }
+    for(const [g,items] of NUMS){ c.append(el("div",{class:"group"},g));
+      for(const [n,d] of items){ const key=b.id+" "+n;
+        const inp=el("input",{type:"number",inputmode:"decimal","data-num":key,"aria-label":key});
+        const unit=el("span",{class:"note","data-unit":key});
+        const btn=el("button",{"data-apply":key,onclick:()=>askNumber(key,n)},"Aplicar");
+        inp.addEventListener("input",()=>{ const o=S["number/"+key]; inp.classList.toggle("dirty",o&&String(o.value)!==inp.value); });
+        c.append(el("div",{class:"num"}, el("label",{},el("div",{class:"n"},n+(DANGER.has(n)?" ⚠":"")),el("div",{class:"d","data-range":key},d)), el("div",{class:"row",style:"gap:4px"},inp,unit), btn)); } }
+    host.append(c);
+  }
+  const g=el("div",{class:"card"}); g.append(el("h2",{},"Referencia de valores"));
+  g.innerHTML+=`<table id="reftab"></table><p class="note">Los límites mínimo y máximo de cada ajuste están fijados también en el firmware del ESP32 (LiFePO4 16S): aunque la página se manipule, no aceptará valores fuera de ese rango.</p>`;
+  host.append(g);
+}
+function renderCtrls(){
+  const open=editing();
+  for(const b of BMS){ const L=$("#lock-"+b.id); if(!L) continue;
+    const sig=open?"o":"c"; if(L.dataset.s!==sig){ L.dataset.s=sig; L.className="lock"+(open?" open":""); L.innerHTML="";
+      L.append(el("span",{},open?"Edición activada: los cambios se escriben en el BMS.":"Edición bloqueada para evitar cambios accidentales."),
+        el("button",{onclick:()=>{ editUntil=open?0:Date.now()+120000; ctrlTick(); }},open?"Bloquear":"Desbloquear edición")); } }
+  document.querySelectorAll("[data-sw]").forEach(t=>{ const o=S["switch/"+t.dataset.sw]; t.setAttribute("aria-checked",o&&o.value?"true":"false"); t.disabled=!open||!o; });
+  document.querySelectorAll("[data-num]").forEach(i=>{ const key=i.dataset.num, o=S["number/"+key]; i.disabled=!open||!o; if(!o) return;
+    i.min=o.min; i.max=o.max; i.step=o.step; if(document.activeElement!==i&&!i.classList.contains("dirty")) i.value=o.value;
+    const u=$('[data-unit="'+key+'"]'); if(u) u.textContent=o.uom;
+    const r=$('[data-range="'+key+'"]'); if(r&&!r.dataset.o) r.dataset.o=r.textContent; if(r) r.textContent=r.dataset.o+" ("+o.min+"–"+o.max+")";
+    $('[data-apply="'+key+'"]').disabled=!open; });
+  const rt=$("#reftab"); if(rt){ let h="<tr><th>Ajuste</th>"+BMS.map(b=>"<th>"+b.id+"</th>").join("")+"</tr>";
+    for(const [,items] of NUMS) for(const [n] of items) h+="<tr><td>"+esc(n)+"</td>"+BMS.map(b=>{const o=S["number/"+b.id+" "+n];return "<td>"+(o?esc(o.state):"—")+"</td>";}).join("")+"</tr>";
+    rt.innerHTML=h; }
+}
+function ctrlTick(){ document.querySelectorAll(".lock").forEach(l=>l.dataset.s=""); renderCtrls(); }
+setInterval(()=>{ if(editUntil&&!editing()){ editUntil=0; ctrlTick(); toast("Edición bloqueada por inactividad"); } },1000);
+
+function confirmBox(title,html,danger){ return new Promise(res=>{ const d=$("#dlg"); $("#dlgT").textContent=title; $("#dlgB").innerHTML=html;
+  const y=$("#dlgYes"); y.className=danger?"danger":"primary"; const done=v=>{ d.close(); y.onclick=n.onclick=null; res(v); }; const n=$("#dlgNo"); y.onclick=()=>done(true); n.onclick=()=>done(false); d.oncancel=()=>res(false); d.showModal(); }); }
+async function post(path){ const r=await fetch(path,{method:"POST"}); if(!r.ok) throw new Error("HTTP "+r.status); }
+async function askSwitch(id,name){
+  if(!editing()) return; const key=id+" "+name, o=S["switch/"+key]; if(!o) return; const to=!o.value;
+  const risky=(name==="Descarga"||name==="Carga")&&!to;
+  const ok=await confirmBox((to?"Activar ":"Desactivar ")+name+" · "+id, "<p>Se escribirá en el BMS <b>"+id+"</b>.</p>"+(risky?"<p><b>"+(name==="Descarga"?"Se cortará la salida a la carga conectada.":"Se dejará de cargar la batería.")+"</b></p>":""), risky);
+  if(!ok) return; editUntil=Date.now()+120000;
+  try{ await post("/switch/"+encodeURIComponent(realName("switch",key))+"/"+(to?"turn_on":"turn_off")); toast(name+" "+id+": "+(to?"ON":"OFF")); }catch(e){ toast("Error: "+e.message); }
+}
+async function askNumber(key,name){
+  if(!editing()) return; const o=S["number/"+key], inp=$('[data-num="'+key+'"]'); if(!o) return; const v=parseFloat(inp.value);
+  if(!isFinite(v)||v<o.min||v>o.max){ toast("Fuera de rango ("+o.min+"–"+o.max+")"); return; }
+  if(v===o.value){ toast("Sin cambios"); return; }
+  const id=key.slice(0,4), g=n=>{ const x=(S["number/"+id+" "+n]||{}).value; return +x; };
+  const nv=Object.assign({}, {"OVP celda":g("OVP celda"),"OVP recuperacion":g("OVP recuperacion"),"UVP celda":g("UVP celda"),"UVP recuperacion":g("UVP recuperacion")}); if(name in nv) nv[name]=v;
+  const warns=[]; if(nv["OVP recuperacion"]>=nv["OVP celda"]) warns.push("La recuperación de sobretensión debería ser menor que la protección."); if(nv["UVP recuperacion"]<=nv["UVP celda"]) warns.push("La recuperación de subtensión debería ser mayor que la protección.");
+  const ok=await confirmBox("Cambiar "+name+" · "+id,"<p><b>"+esc(o.state)+"</b> → <b>"+v+" "+esc(o.uom)+"</b></p>"+(DANGER.has(name)?"<p>Es un parámetro de <b>protección</b>. Verifica el valor con la hoja de datos de tus celdas.</p>":"")+warns.map(w=>"<p class='note' style='color:var(--bad)'>⚠ "+w+"</p>").join(""), DANGER.has(name));
+  if(!ok) return; editUntil=Date.now()+120000;
+  try{ await post("/number/"+encodeURIComponent(realName("number",key))+"/set?value="+v); inp.classList.remove("dirty"); toast(name+" "+id+" = "+v); }catch(e){ toast("Error: "+e.message); }
+}
+
+// ---------- parámetros de solo lectura ----------
+const RO=[
+  ["Calibración de SOC",["Re-bulk SOC"]],
+  ["Petición de carga al inversor",["Tension carga solicitada celda","Tension flotacion solicitada celda","Tiempo carga solicitada","Tiempo flotacion solicitada"]],
+  ["Temperaturas de protección",["Carga sobretemperatura recuperacion","Carga subtemperatura recuperacion","Descarga sobretemperatura","Descarga sobretemperatura recuperacion","Descarga subtemperatura","Descarga subtemperatura recuperacion","MOSFET sobretemperatura","MOSFET sobretemperatura recuperacion"]],
+  ["Corriente y cortocircuito",["Sobrecorriente carga retardo","Sobrecorriente carga recuperacion","Sobrecorriente descarga retardo","Sobrecorriente descarga recuperacion","Cortocircuito retardo","Cortocircuito recuperacion"]],
+];
+function renderRO(){
+  let h="<table><tr><th>Parámetro</th>"+BMS.map(b=>"<th>"+b.id+"</th>").join("")+"</tr>";
+  for(const [g,items] of RO){ h+='<tr><td colspan="'+(BMS.length+1)+'" class="group" style="text-align:left;border-top:1px solid var(--line)">'+esc(g)+"</td></tr>";
+    for(const n of items) h+="<tr><td>"+esc(n)+"</td>"+BMS.map(b=>{const o=S["sensor/"+b.id+" Param "+n];return "<td>"+(o&&typeof o.value==="number"?esc(o.state):"—")+"</td>";}).join("")+"</tr>"; }
+  const host=$("#roTab"); if(host.dataset.h!==h){ host.dataset.h=h; host.innerHTML=h+"</table>"; }
+}
+
+// ---------- tema ----------
+(function(){ let t=null; try{t=localStorage.getItem("jktheme");}catch(_){} if(t) document.documentElement.dataset.theme=t; })();
+$("#themeBtn").onclick=()=>{ const cur=document.documentElement.dataset.theme||(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light"); const n=cur==="dark"?"light":"dark"; document.documentElement.dataset.theme=n; try{localStorage.setItem("jktheme",n);}catch(_){} drawAll(); };
+
+buildCards(); buildCharts(); buildCtrls(); connect(); render();
+</script>
+</body>
+</html>

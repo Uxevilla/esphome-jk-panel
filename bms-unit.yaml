@@ -1,0 +1,340 @@
+# Paquete por BMS. Variables: id, label (bateria1/bateria2), mac, rated_amps
+# Los nombres de entidad replican los del antiguo ESP32 "jk-bms-proxy" para conservar los entity_id de Home Assistant.
+ble_client:
+  - id: client_${id}
+    mac_address: ${mac}
+
+jk_bms_ble:
+  - id: bms_${id}
+    ble_client_id: client_${id}
+    protocol_version: JK02_32S
+    throttle: 5s
+
+sensor:
+  - platform: jk_bms_ble
+    jk_bms_ble_id: bms_${id}
+    total_voltage: {name: "${label} voltaje total"}
+    current: {name: "${label} corriente"}
+    power: {name: "${label} potencia"}
+    state_of_charge: {name: "${label} estado de carga"}
+    capacity_remaining: {name: "${label} capacidad restante"}
+    charging_cycles: {name: "${label} ciclos de carga"}
+    min_cell_voltage: {name: "${label} voltaje mínimo celda"}
+    max_cell_voltage: {name: "${label} voltaje máximo celda"}
+    average_cell_voltage: {name: "${label} voltaje promedio celda"}
+    delta_cell_voltage: {name: "${label} delta voltaje celda"}
+    min_voltage_cell: {name: "${label} celda de voltaje mínimo"}
+    max_voltage_cell: {name: "${label} celda de voltaje máximo"}
+    temperature_sensor_1: {name: "${label} sensor de temperatura 1"}
+    temperature_sensor_2: {name: "${label} sensor de temperatura 2"}
+    mosfet_temperature: {name: "${label} temperatura del tubo de potencia"}
+    total_runtime: {name: "${label} tiempo total de funcionamiento"}
+    cell_voltage_1: {name: "${label} voltaje celda 1"}
+    cell_voltage_2: {name: "${label} voltaje celda 2"}
+    cell_voltage_3: {name: "${label} voltaje celda 3"}
+    cell_voltage_4: {name: "${label} voltaje celda 4"}
+    cell_voltage_5: {name: "${label} voltaje celda 5"}
+    cell_voltage_6: {name: "${label} voltaje celda 6"}
+    cell_voltage_7: {name: "${label} voltaje celda 7"}
+    cell_voltage_8: {name: "${label} voltaje celda 8"}
+    cell_voltage_9: {name: "${label} voltaje celda 9"}
+    cell_voltage_10: {name: "${label} voltaje celda 10"}
+    cell_voltage_11: {name: "${label} voltaje celda 11"}
+    cell_voltage_12: {name: "${label} voltaje celda 12"}
+    cell_voltage_13: {name: "${label} voltaje celda 13"}
+    cell_voltage_14: {name: "${label} voltaje celda 14"}
+    cell_voltage_15: {name: "${label} voltaje celda 15"}
+    cell_voltage_16: {name: "${label} voltaje celda 16"}
+    cell_resistance_1: {name: "${label} resistencia celda 1"}
+    cell_resistance_2: {name: "${label} resistencia celda 2"}
+    cell_resistance_3: {name: "${label} resistencia celda 3"}
+    cell_resistance_4: {name: "${label} resistencia celda 4"}
+    cell_resistance_5: {name: "${label} resistencia celda 5"}
+    cell_resistance_6: {name: "${label} resistencia celda 6"}
+    cell_resistance_7: {name: "${label} resistencia celda 7"}
+    cell_resistance_8: {name: "${label} resistencia celda 8"}
+    cell_resistance_9: {name: "${label} resistencia celda 9"}
+    cell_resistance_10: {name: "${label} resistencia celda 10"}
+    cell_resistance_11: {name: "${label} resistencia celda 11"}
+    cell_resistance_12: {name: "${label} resistencia celda 12"}
+    cell_resistance_13: {name: "${label} resistencia celda 13"}
+    cell_resistance_14: {name: "${label} resistencia celda 14"}
+    cell_resistance_15: {name: "${label} resistencia celda 15"}
+    cell_resistance_16: {name: "${label} resistencia celda 16"}
+  - platform: template
+    name: "${label} Param Re-bulk SOC"
+    lambda: "return id(${id}_p_rebulk).state;"
+    update_interval: 20s
+    accuracy_decimals: 0
+    unit_of_measurement: "%"
+    entity_category: diagnostic
+  - platform: template
+    name: "${label} Param Tension carga solicitada celda"
+    lambda: "return id(${id}_p_reqchg).state;"
+    update_interval: 20s
+    accuracy_decimals: 3
+    unit_of_measurement: "V"
+    entity_category: diagnostic
+  - platform: template
+    name: "${label} Param Tension flotacion solicitada celda"
+    lambda: "return id(${id}_p_reqflt).state;"
+    update_interval: 20s
+    accuracy_decimals: 3
+    unit_of_measurement: "V"
+    entity_category: diagnostic
+  - platform: template
+    name: "${label} Param Tiempo carga solicitada"
+    lambda: "return id(${id}_p_reqchgt).state;"
+    update_interval: 20s
+    accuracy_decimals: 1
+    unit_of_measurement: "h"
+    entity_category: diagnostic
+  - platform: template
+    name: "${label} Param Tiempo flotacion solicitada"
+    lambda: "return id(${id}_p_reqfltt).state;"
+    update_interval: 20s
+    accuracy_decimals: 1
+    unit_of_measurement: "h"
+    entity_category: diagnostic
+  - platform: template
+    name: "${label} Param Sobrecorriente carga retardo"
+    lambda: "return id(${id}_p_cocd).state;"
+    update_interval: 20s
+    accuracy_decimals: 0
+    unit_of_measurement: "s"
+    entity_category: diagnostic
+  - platform: template
+    name: "${label} Param Sobrecorriente carga recuperacion"
+    lambda: "return id(${id}_p_cocr).state;"
+    update_interval: 20s
+    accuracy_decimals: 0
+    unit_of_measurement: "s"
+    entity_category: diagnostic
+  - platform: template
+    name: "${label} Param Sobrecorriente descarga retardo"
+    lambda: "return id(${id}_p_docd).state;"
+    update_interval: 20s
+    accuracy_decimals: 0
+    unit_of_measurement: "s"
+    entity_category: diagnostic
+  - platform: template
+    name: "${label} Param Sobrecorriente descarga recuperacion"
+    lambda: "return id(${id}_p_docr).state;"
+    update_interval: 20s
+    accuracy_decimals: 0
+    unit_of_measurement: "s"
+    entity_category: diagnostic
+  - platform: template
+    name: "${label} Param Cortocircuito retardo"
+    lambda: "return id(${id}_p_scd).state;"
+    update_interval: 20s
+    accuracy_decimals: 0
+    unit_of_measurement: "us"
+    entity_category: diagnostic
+  - platform: template
+    name: "${label} Param Cortocircuito recuperacion"
+    lambda: "return id(${id}_p_scr).state;"
+    update_interval: 20s
+    accuracy_decimals: 0
+    unit_of_measurement: "s"
+    entity_category: diagnostic
+  - platform: template
+    name: "${label} Param Carga sobretemperatura recuperacion"
+    lambda: "return id(${id}_p_cotr).state;"
+    update_interval: 20s
+    accuracy_decimals: 1
+    unit_of_measurement: "°C"
+    entity_category: diagnostic
+  - platform: template
+    name: "${label} Param Carga subtemperatura recuperacion"
+    lambda: "return id(${id}_p_cutr).state;"
+    update_interval: 20s
+    accuracy_decimals: 1
+    unit_of_measurement: "°C"
+    entity_category: diagnostic
+  - platform: template
+    name: "${label} Param Descarga sobretemperatura"
+    lambda: "return id(${id}_p_dot).state;"
+    update_interval: 20s
+    accuracy_decimals: 1
+    unit_of_measurement: "°C"
+    entity_category: diagnostic
+  - platform: template
+    name: "${label} Param Descarga sobretemperatura recuperacion"
+    lambda: "return id(${id}_p_dotr).state;"
+    update_interval: 20s
+    accuracy_decimals: 1
+    unit_of_measurement: "°C"
+    entity_category: diagnostic
+  - platform: template
+    name: "${label} Param Descarga subtemperatura"
+    lambda: "return id(${id}_p_dut).state;"
+    update_interval: 20s
+    accuracy_decimals: 0
+    unit_of_measurement: "°C"
+    entity_category: diagnostic
+  - platform: template
+    name: "${label} Param Descarga subtemperatura recuperacion"
+    lambda: "return id(${id}_p_dutr).state;"
+    update_interval: 20s
+    accuracy_decimals: 0
+    unit_of_measurement: "°C"
+    entity_category: diagnostic
+  - platform: template
+    name: "${label} Param MOSFET sobretemperatura"
+    lambda: "return id(${id}_p_mot).state;"
+    update_interval: 20s
+    accuracy_decimals: 1
+    unit_of_measurement: "°C"
+    entity_category: diagnostic
+  - platform: template
+    name: "${label} Param MOSFET sobretemperatura recuperacion"
+    lambda: "return id(${id}_p_motr).state;"
+    update_interval: 20s
+    accuracy_decimals: 1
+    unit_of_measurement: "°C"
+    entity_category: diagnostic
+
+binary_sensor:
+  - platform: jk_bms_ble
+    jk_bms_ble_id: bms_${id}
+    balancing: {name: "${label} balanceando"}
+    heating: {name: "${label} calentando"}
+    charging: {name: "${label} cargando"}
+    discharging: {name: "${label} descargando"}
+    online_status: {name: "${label} estado online"}
+
+text_sensor:
+  - platform: jk_bms_ble
+    jk_bms_ble_id: bms_${id}
+    errors: {name: "${label} errores"}
+    balancer_status: {name: "${label} estado de operación"}
+    total_runtime_formatted: {name: "${label} tiempo total de funcionamiento formateado"}
+
+button:
+  - platform: jk_bms_ble
+    jk_bms_ble_id: bms_${id}
+    retrieve_settings: {name: "${label} recuperar ajustes"}
+    retrieve_device_info: {name: "${label} recuperar info dispositivo"}
+
+switch:
+  - platform: jk_bms_ble
+    jk_bms_ble_id: bms_${id}
+    charging: {name: "${label} cargando"}
+    discharging: {name: "${label} descargando"}
+    balancer: {name: "${label} balancer"}
+    heating: {name: "${label} calentando"}
+    timed_stored_data: {name: "${label} datos almacenados temporizados"}
+    charging_float_mode: {name: "${label} modo flotación carga"}
+    display_always_on: {name: "${label} pantalla siempre encendida"}
+    smart_sleep: {name: "${label} sueño inteligente"}
+    # Reales pero internos: solo se leen (los interruptores visibles de abajo son "espejos" sin efecto).
+    emergency: {id: "${id}_sw_emerg", name: "${label} ro emerg", internal: true}
+    disable_temperature_sensors: {id: "${id}_sw_dts", name: "${label} ro dts", internal: true}
+    disable_pcl_module: {id: "${id}_sw_pcl", name: "${label} ro pcl", internal: true}
+  # Mismo id que el antiguo, pero accionarlos NO escribe en el BMS (reflejan su estado real).
+  - platform: template
+    name: "${label} emergencia"
+    lambda: "return id(${id}_sw_emerg).state;"
+    turn_on_action: [{logger.log: "emergencia: bloqueado (solo lectura)"}]
+    turn_off_action: [{logger.log: "emergencia: bloqueado (solo lectura)"}]
+  - platform: template
+    name: "${label} deshabilitar sensores temperatura"
+    lambda: "return id(${id}_sw_dts).state;"
+    turn_on_action: [{logger.log: "deshabilitar sensores temperatura: bloqueado (solo lectura)"}]
+    turn_off_action: [{logger.log: "deshabilitar sensores temperatura: bloqueado (solo lectura)"}]
+  - platform: template
+    name: "${label} deshabilitar módulo pcl"
+    lambda: "return id(${id}_sw_pcl).state;"
+    turn_on_action: [{logger.log: "deshabilitar módulo pcl: bloqueado (solo lectura)"}]
+    turn_off_action: [{logger.log: "deshabilitar módulo pcl: bloqueado (solo lectura)"}]
+  - platform: template
+    name: "${label} habilitar conexión bluetooth"
+    lambda: "return true;"
+    turn_on_action: [{logger.log: "bluetooth: bloqueado (solo lectura)"}]
+    turn_off_action: [{logger.log: "bluetooth: bloqueado (apagarlo cortaría la comunicación con el BMS)"}]
+
+# Límites duros para LiFePO4 16S aplicados en el firmware.
+number:
+  - platform: jk_bms_ble
+    jk_bms_ble_id: bms_${id}
+    balance_trigger_voltage: {name: "${label} voltaje de disparo de balanceo", min_value: 0.005, max_value: 0.100, step: 0.001}
+    balancing_start_voltage: {name: "${label} voltaje de inicio de balanceo", min_value: 3.000, max_value: 3.500, step: 0.001}
+    max_balance_current: {name: "${label} corriente máxima de balanceo", min_value: 0.3, max_value: 2.0, step: 0.1}
+    cell_voltage_overvoltage_protection: {name: "${label} protección sobretensión celda", min_value: 3.400, max_value: 3.650, step: 0.001}
+    cell_voltage_overvoltage_recovery: {name: "${label} recuperación sobretensión celda", min_value: 3.300, max_value: 3.600, step: 0.001}
+    cell_voltage_undervoltage_protection: {name: "${label} protección subtensión celda", min_value: 2.500, max_value: 3.200, step: 0.001}
+    cell_voltage_undervoltage_recovery: {name: "${label} recuperación subtensión celda", min_value: 2.600, max_value: 3.400, step: 0.001}
+    max_charge_current: {name: "${label} corriente máxima de carga", min_value: 1, max_value: "${rated_amps}", step: 1}
+    max_discharge_current: {name: "${label} corriente máxima de descarga", min_value: 1, max_value: "${rated_amps}", step: 1}
+    cell_soc100_voltage: {name: "${label} voltaje celda SoC 100%", min_value: 3.300, max_value: 3.650, step: 0.001}
+    cell_soc0_voltage: {name: "${label} voltaje celda SoC 0%", min_value: 2.800, max_value: 3.300, step: 0.001}
+    power_off_voltage: {name: "${label} voltaje apagado", min_value: 2.500, max_value: 3.000, step: 0.001}
+    smart_sleep_voltage: {name: "${label} voltaje sueño inteligente", min_value: 3.000, max_value: 3.600, step: 0.001}
+    charge_overtemperature_protection: {id: "${id}_p_cot", name: "${label} temperatura máxima de carga", min_value: 35, max_value: 55, step: 1}
+    charge_undertemperature_protection: {id: "${id}_p_cut", name: "${label} temperatura mínima de carga", min_value: 0, max_value: 10, step: 1}
+    # Reales pero internos y vetados: solo se leen (los visibles son "espejos" sin efecto, más abajo).
+    current_calibration: {id: "${id}_n_ical", name: "${label} ro ical", internal: true}
+    voltage_calibration: {id: "${id}_n_vcal", name: "${label} ro vcal", internal: true}
+    total_battery_capacity: {id: "${id}_n_cap", name: "${label} ro cap", internal: true}
+    cell_count: {id: "${id}_n_cnt", name: "${label} ro cnt", internal: true}
+    re_bulk_soc: {id: "${id}_p_rebulk", name: "${label} ro rebulk", internal: true}
+    cell_request_charge_voltage: {id: "${id}_p_reqchg", name: "${label} ro reqchg", internal: true}
+    cell_request_float_voltage: {id: "${id}_p_reqflt", name: "${label} ro reqflt", internal: true}
+    cell_request_charge_voltage_time: {id: "${id}_p_reqchgt", name: "${label} ro reqchgt", internal: true}
+    cell_request_float_voltage_time: {id: "${id}_p_reqfltt", name: "${label} ro reqfltt", internal: true}
+    charge_overcurrent_protection_delay: {id: "${id}_p_cocd", name: "${label} ro cocd", internal: true}
+    charge_overcurrent_protection_recovery_time: {id: "${id}_p_cocr", name: "${label} ro cocr", internal: true}
+    discharge_overcurrent_protection_delay: {id: "${id}_p_docd", name: "${label} ro docd", internal: true}
+    discharge_overcurrent_protection_recovery_time: {id: "${id}_p_docr", name: "${label} ro docr", internal: true}
+    short_circuit_protection_delay: {id: "${id}_p_scd", name: "${label} ro scd", internal: true}
+    short_circuit_protection_recovery_time: {id: "${id}_p_scr", name: "${label} ro scr", internal: true}
+    charge_overtemperature_protection_recovery: {id: "${id}_p_cotr", name: "${label} ro cotr", internal: true}
+    charge_undertemperature_protection_recovery: {id: "${id}_p_cutr", name: "${label} ro cutr", internal: true}
+    discharge_overtemperature_protection: {id: "${id}_p_dot", name: "${label} ro dot", internal: true}
+    discharge_overtemperature_protection_recovery: {id: "${id}_p_dotr", name: "${label} ro dotr", internal: true}
+    discharge_undertemperature_protection: {id: "${id}_p_dut", name: "${label} ro dut", internal: true}
+    discharge_undertemperature_protection_recovery: {id: "${id}_p_dutr", name: "${label} ro dutr", internal: true}
+    mosfet_overtemperature_protection: {id: "${id}_p_mot", name: "${label} ro mot", internal: true}
+    mosfet_overtemperature_protection_recovery: {id: "${id}_p_motr", name: "${label} ro motr", internal: true}
+
+  # Mismo id que el antiguo, pero cambiar el valor NO escribe en el BMS (reflejan su valor real).
+  - platform: template
+    name: "${label} calibración corriente"
+    lambda: "return id(${id}_n_ical).state;"
+    update_interval: 15s
+    min_value: 0
+    max_value: 100000
+    step: 0.001
+    unit_of_measurement: "A"
+    set_action:
+      - logger.log: "calibración corriente: bloqueado (solo lectura)"
+  - platform: template
+    name: "${label} calibración voltaje"
+    lambda: "return id(${id}_n_vcal).state;"
+    update_interval: 15s
+    min_value: 0
+    max_value: 100000
+    step: 0.01
+    unit_of_measurement: "V"
+    set_action:
+      - logger.log: "calibración voltaje: bloqueado (solo lectura)"
+  - platform: template
+    name: "${label} capacidad total de batería"
+    lambda: "return id(${id}_n_cap).state;"
+    update_interval: 15s
+    min_value: 0
+    max_value: 10000
+    step: 1
+    unit_of_measurement: "Ah"
+    set_action:
+      - logger.log: "capacidad total: bloqueado (solo lectura)"
+  - platform: template
+    name: "${label} conteo de celdas"
+    lambda: "return id(${id}_n_cnt).state;"
+    update_interval: 15s
+    min_value: 1
+    max_value: 32
+    step: 1
+    set_action:
+      - logger.log: "conteo de celdas: bloqueado (solo lectura)"

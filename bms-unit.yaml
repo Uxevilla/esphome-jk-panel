@@ -1,5 +1,15 @@
 # Paquete por BMS. Variables: id, label (bateria1/bateria2), mac, rated_amps
 # Los nombres de entidad replican los del antiguo ESP32 "jk-bms-proxy" para conservar los entity_id de Home Assistant.
+# Tras cada arranque, a veces un BMS no entrega sus ajustes por Bluetooth: se los pedimos (lectura) 45 s y 90 s después.
+esphome:
+  on_boot:
+    - priority: -100
+      then:
+        - delay: 45s
+        - button.press: ${id}_btn_settings
+        - delay: 45s
+        - button.press: ${id}_btn_settings
+
 ble_client:
   - id: client_${id}
     mac_address: ${mac}
@@ -214,7 +224,7 @@ text_sensor:
 button:
   - platform: jk_bms_ble
     jk_bms_ble_id: bms_${id}
-    retrieve_settings: {name: "${label} recuperar ajustes"}
+    retrieve_settings: {id: "${id}_btn_settings", name: "${label} recuperar ajustes"}
     retrieve_device_info: {name: "${label} recuperar info dispositivo"}
 
 switch:
